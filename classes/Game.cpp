@@ -140,6 +140,19 @@ void Game::scanForMouse()
 	{
 		mouseUp(mousePos, entity);
 	}
+	if (ImGui::IsMouseReleased(0))
+	{
+		for (int i = 0; i < grid->getWidth(); i++){
+			for (int j = 0; j < grid->getHeight(); j++){
+				ChessSquare* square = grid->getSquare(i, j);
+				if (square == _dropTarget)
+				{
+					continue;
+				}
+				square->setHighlighted(false);
+			}
+		}
+	}
 	else
 	{
 		mouseMoved(mousePos, entity);

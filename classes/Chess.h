@@ -18,6 +18,27 @@ typedef uint64_t BitBoard;
 //     King
 // };
 
+enum AllBitBoards
+{
+    WHITE_PAWNS,
+    WHITE_KNIGHTS,
+    WHITE_BISHOPS,
+    WHITE_ROOKS,
+    WHITE_QUEENS,
+    WHITE_KING,
+    WHITE_ALL_PIECES,
+    BLACK_PAWNS,
+    BLACK_KNIGHTS,
+    BLACK_BISHOPS,
+    BLACK_ROOKS,
+    BLACK_QUEENS,
+    BLACK_KING,
+    BLACK_ALL_PIECES,
+    OCCUPANCY,
+    EMPTY_SQUARES,
+    e_numBitboards
+};
+
 class Chess : public Game
 {
 public:
@@ -72,6 +93,10 @@ private:
     void generatePawnMoveList(std::vector<BitMove>& moves, const BitBoard pawns, const BitBoard occupancy, const BitBoard enemyPieces, char color);
     BitBoard generateKnightMoveBitboard(int square);
     void generateKnightMoves(std::vector<BitMove>& moves, uint64_t knightBoard, uint64_t occupancy);
+
+    void generateBishopMoves(std::vector<BitMove>& moves, uint64_t bishopBoard, uint64_t occupancy, uint64_t friendlies);
+    void generateRookMoves(std::vector<BitMove>& moves, uint64_t rookBoard, uint64_t occupancy, uint64_t friendlies);
+    void generateQueenMoves(std::vector<BitMove>& moves, uint64_t queenBoard, uint64_t occupancy, uint64_t friendlies);
     inline int bitScanForward(uint64_t bb) const {
     #if defined(_MSC_VER) && !defined(__clang__)
             unsigned long index;
@@ -83,8 +108,10 @@ private:
     };
 
 
-
+    int _currentPlayer;
     Grid* _grid;
     BitBoard _knightBitboards[64];
     std::vector<BitMove> _moves;
+    BitBoard _bitboards[e_numBitboards];
+    int _bitboardLookup[128];
 };

@@ -1,15 +1,39 @@
 #include "Chess.h"
 #include <limits>
 #include <cmath>
+#include "MagicBitboards.h"
 
 
 
 Chess::Chess()
 {
     _grid = new Grid(8, 8);
+    
+    initMagicBitboards();
+
+    for(int i = 0; i < 128; i++) {
+        _bitboardLookup[i] = 0;
+    }
+
+    _bitboardLookup['P'] = WHITE_PAWNS;
+    _bitboardLookup['N'] = WHITE_KNIGHTS;
+    _bitboardLookup['B'] = WHITE_BISHOPS;
+    _bitboardLookup['R'] = WHITE_ROOKS;
+    _bitboardLookup['Q'] = WHITE_QUEENS;
+    _bitboardLookup['K'] = WHITE_KING;
+    _bitboardLookup['p'] = BLACK_PAWNS;
+    _bitboardLookup['n'] = BLACK_KNIGHTS;
+    _bitboardLookup['b'] = BLACK_BISHOPS;
+    _bitboardLookup['r'] = BLACK_ROOKS;
+    _bitboardLookup['q'] = BLACK_QUEENS;
+    _bitboardLookup['k'] = BLACK_KING;
+    _bitboardLookup['0'] = EMPTY_SQUARES;
+
     for (int i = 0; i < 64; i++) {
         _knightBitboards[i] = generateKnightMoveBitboard(i);
     }
+
+
 }
 
 Chess::~Chess()
@@ -203,6 +227,8 @@ bool Chess::actionForEmptyHolder(BitHolder &holder)
     return false;
 }
 
+    
+
 bool Chess::canBitMoveFrom(Bit &bit, BitHolder &src)
 {
     // need to implement friendly/unfriendly in bit so for now this hack
@@ -313,38 +339,46 @@ std::vector<BitMove> Chess::generateAllMoves()
     moves.reserve(32);
     std::string state = stateString();
 
-    uint64_t whiteKnights = 0LL;
-    uint64_t whitePawns = 0LL;
-    uint64_t whiteKing = 0LL;
-    uint64_t whiteBishops = 0LL;
-    uint64_t whiteQueen = 0LL;
-    uint64_t blackKnights = 0LL;
-
-    for (int i = 0; i < 64; i++)
-    {
-        if (state[i] == 'N') {
-            whiteKnights |= BitZero << i;
-        } else if (state[i] == 'P') {
-            whitePawns |= BitZero << i;
-        } else if (state[i] == 'K') {
-            whiteKing |= BitZero << i;
-        } else if (state[i] == 'n') {
-            blackKnights |= BitZero << i;
-        } else if (state[i] == 'B') {
-            whiteBishops |= BitZero << i;
-        } else if (state[i] == 'Q') {
-            whiteQueen |= BitZero << i;
-        }
+    for (int i = 0; i < e_numBitboards; i++) {
+        _bitboards[i] = 0;
     }
 
-    uint64_t whiteOccupancy = whiteKnights | whitePawns | whiteKing | whiteBishops | whiteQueen;
-    uint64_t blackOccupancy = blackKnights;
-    std::cout <<"printing" << std::endl;
-    printBitboard(~whiteOccupancy);
-    generateKingMoves(moves, whiteKing, 1, whiteOccupancy);
-    generateKnightMoves(moves, whiteKnights, whiteOccupancy);
-    generatePawnMoveList(moves, whitePawns, ~whiteOccupancy, 0, 1);
+    for (int i = 0; i < 64; i++) {
+        int bitIndex = _bitboardLookup[state[i]];
+        _bitboards[bitIndex] |= 1ULL << i;
+        
+    }
+    std::cout << "White Knights Bitboard:" << std::endl;
+    printBitboard(_bitboards[WHITE_KNIGHTS]);
 
+    std::cout << "Black Knights Bitboard:" << std::endl;
+    printBitboard(_bitboards[BLACK_PAWNS]);
+    _bitboards[WHITE_ALL_PIECES] = _bitboards[WHITE_PAWNS] | 
+                                        _bitboards[WHITE_KNIGHTS] | 
+                                        _bitboards[WHITE_BISHOPS] | 
+                                        _bitboards[WHITE_ROOKS] | 
+                                        _bitboards[WHITE_QUEENS] | 
+                                        _bitboards[WHITE_KING];
+
+    _bitboards[BLACK_ALL_PIECES] = _bitboards[BLACK_PAWNS] |
+                                        _bitboards[BLACK_KNIGHTS] |
+                                        _bitboards[BLACK_BISHOPS] |
+                                        _bitboards[BLACK_ROOKS] |
+                                        _bitboards[BLACK_QUEENS] |
+                                        _bitboards[BLACK_KING];
+
+    _bitboards[OCCUPANCY] = _bitboards[WHITE_ALL_PIECES] | _bitboards[BLACK_ALL_PIECES];
+
+    int oppBitIndex = getCurrentPlayer()->playerNumber() == 1 ? WHITE_PAWNS : BLACK_PAWNS;
+    int bitIndex = getCurrentPlayer()->playerNumber() == 1 ? BLACK_PAWNS : WHITE_PAWNS;
+
+    
+    generateKingMoves(moves, _bitboards[WHITE_KING + bitIndex], 1, _bitboards[WHITE_ALL_PIECES]);
+    generateKnightMoves(moves, _bitboards[WHITE_KNIGHTS + bitIndex], _bitboards[WHITE_ALL_PIECES]);
+    generatePawnMoveList(moves, _bitboards[WHITE_PAWNS + bitIndex], _bitboards[EMPTY_SQUARES], _bitboards[WHITE_ALL_PIECES + oppBitIndex], getCurrentPlayer()->playerNumber());
+    generateBishopMoves(moves, _bitboards[WHITE_BISHOPS + bitIndex], _bitboards[OCCUPANCY], _bitboards[WHITE_ALL_PIECES + bitIndex]);
+    generateRookMoves(moves, _bitboards[WHITE_ROOKS + bitIndex], _bitboards[OCCUPANCY], _bitboards[WHITE_ALL_PIECES + bitIndex]);
+    generateQueenMoves(moves, _bitboards[WHITE_QUEENS + bitIndex], _bitboards[OCCUPANCY], _bitboards[WHITE_ALL_PIECES + bitIndex]);
     //generateKnightMoves(moves, blackKnights, blackOccupancy);
 
     return moves;
@@ -357,28 +391,18 @@ void Chess::generateKingMoves(std::vector<BitMove>& moves, uint64_t kingBitboard
     constexpr uint64_t Rank8(0xFF00000000000000ULL);
 
     int fromSquare = bitScanForward(kingBitboard);
-    std::cout << "kingbitboard" << std::endl;
-    printBitboard(kingBitboard);
 
     uint64_t kingMoves[8];
 
     kingMoves[0] = ((kingBitboard & NotAFile) << 1) & ~occupancy;
-    printBitboard(kingMoves[0]);
     kingMoves[1] = ((kingBitboard & NotHFile) >> 1)  & ~occupancy;
-    printBitboard(kingMoves[1]);
     kingMoves[2] = (((kingBitboard & (~Rank1))) >> 8)  & ~occupancy;
-    printBitboard(kingMoves[2]);
     kingMoves[3] = (((kingBitboard & (~Rank8))) << 8)  & ~occupancy;
-    printBitboard(kingMoves[3]);
     
     kingMoves[4] = ((kingBitboard & (NotAFile|(~Rank1))) >> 7) & ~occupancy;
-    printBitboard(kingMoves[4]);
     kingMoves[5] = ((kingBitboard & (NotAFile|(~Rank8))) << 9) & ~occupancy;
-    printBitboard(kingMoves[5]);
     kingMoves[6] = ((kingBitboard & (NotHFile|(~Rank1))) >> 9) & ~occupancy;
-    printBitboard(kingMoves[6]);
     kingMoves[7] = ((kingBitboard & (NotHFile|(~Rank8))) << 7) & ~occupancy;
-    printBitboard(kingMoves[7]);
 
     for (int i = 0; i < 8; i++)
     {
@@ -422,7 +446,6 @@ BitBoard Chess::generateKnightMoveBitboard(int square) {
 void Chess::addPawnBitboardMovesToList(std::vector<BitMove>& moves, BitBoard bitboard, const int shift) {
     if (bitboard == 0)
         return;
-    printBitboard(bitboard);
     while (bitboard)
     {
         int toSquare = bitScanForward(bitboard);
@@ -434,13 +457,15 @@ void Chess::addPawnBitboardMovesToList(std::vector<BitMove>& moves, BitBoard bit
     
 }
 
-#define WHITE 1
+#define WHITE 0
 #define BLACK -1
 
 void Chess::generatePawnMoveList(std::vector<BitMove>& moves, const BitBoard pawns, const BitBoard emptySquares, const BitBoard enemyPieces, char color) {
     if (pawns == 0) {
         return;
     }
+    std::cout << "Empty squares" << std::endl;
+    printBitboard(emptySquares);
 
     constexpr uint64_t NotAFile(0xFEFEFEFEFEFEFEFEULL);
     constexpr uint64_t NotHFile(0x7F7F7F7F7F7F7F7FULL);
@@ -449,8 +474,8 @@ void Chess::generatePawnMoveList(std::vector<BitMove>& moves, const BitBoard paw
 
     BitBoard singleMoves = (color == WHITE) ? (pawns << 8) & emptySquares : (pawns >> 8) & emptySquares;
 
-    BitBoard doubleMoves = (color == WHITE) ? ((singleMoves & Rank3) << 8) & emptySquares : ((singleMoves & Rank6 >> 8) & emptySquares);
-
+    BitBoard doubleMoves = (color == WHITE) ? ((singleMoves & Rank3) << 8) & emptySquares : ((singleMoves & Rank6) >> 8) & emptySquares;
+    
     BitBoard capturesLeft = (color == WHITE) ? ((pawns & NotAFile) << 7) & enemyPieces : ((pawns & NotAFile) >> 9) & enemyPieces;
     BitBoard capturesRight = (color == WHITE) ? ((pawns & NotHFile) << 9) & enemyPieces : ((pawns & NotHFile) >> 7) & enemyPieces;
 
@@ -470,11 +495,12 @@ void Chess::generatePawnMoveList(std::vector<BitMove>& moves, const BitBoard paw
 
 
 void Chess::generateKnightMoves(std::vector<BitMove>& moves, uint64_t knightBoard, uint64_t occupancy) {
+    std::cout << "Generating Knight Moves" << std::endl;
+    printBitboard(knightBoard);
     while (knightBoard) {
         int fromSquare = bitScanForward(knightBoard);
         uint64_t moveBitboard = _knightBitboards[fromSquare];
-        //printBitboard(moveBitboard);
-        
+
         while (moveBitboard) {
             int toSquare = bitScanForward(moveBitboard);
             if (!(occupancy & (1ULL<<toSquare))) {
@@ -484,5 +510,50 @@ void Chess::generateKnightMoves(std::vector<BitMove>& moves, uint64_t knightBoar
         }
 
         knightBoard &= knightBoard - 1;
+    }
+}
+
+void Chess::generateBishopMoves(std::vector<BitMove>& moves, uint64_t bishopBoard, uint64_t occupancy, uint64_t friendlies) {
+    while (bishopBoard) {
+        int fromSquare = bitScanForward(bishopBoard);
+        uint64_t moveBitboard = BitBoard(getBishopAttacks(fromSquare, occupancy) & ~friendlies);
+        
+        while (moveBitboard) {
+            int toSquare = bitScanForward(moveBitboard);
+            moves.push_back(BitMove(fromSquare,toSquare, Bishop));
+            moveBitboard &= moveBitboard -1;
+        }
+
+        bishopBoard &= bishopBoard - 1;
+    }
+}
+
+void Chess::generateRookMoves(std::vector<BitMove>& moves, uint64_t rookBoard, uint64_t occupancy, uint64_t friendlies) {
+    while (rookBoard) {
+        int fromSquare = bitScanForward(rookBoard);
+        uint64_t moveBitboard = BitBoard(getRookAttacks(fromSquare, occupancy) & ~friendlies);
+        
+        while (moveBitboard) {
+            int toSquare = bitScanForward(moveBitboard);
+            moves.push_back(BitMove(fromSquare,toSquare, Rook));
+            moveBitboard &= moveBitboard -1;
+        }
+
+        rookBoard &= rookBoard - 1;
+    }
+}
+
+void Chess::generateQueenMoves(std::vector<BitMove>& moves, uint64_t queenBoard, uint64_t occupancy, uint64_t friendlies) {
+    while (queenBoard) {
+        int fromSquare = bitScanForward(queenBoard);
+        uint64_t moveBitboard = BitBoard(getQueenAttacks(fromSquare, occupancy) & ~friendlies);
+        
+        while (moveBitboard) {
+            int toSquare = bitScanForward(moveBitboard);
+            moves.push_back(BitMove(fromSquare,toSquare, Queen));
+            moveBitboard &= moveBitboard -1;
+        }
+
+        queenBoard &= queenBoard - 1;
     }
 }
