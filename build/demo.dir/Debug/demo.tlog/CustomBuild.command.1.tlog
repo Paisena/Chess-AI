@@ -1,0 +1,10 @@
+^C:\SCHOOLSTUFF\UCSC\UCSC YEAR 3 FALL\CMPM 123\CODE\CHESS-AI\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" "-SC:/SchoolStuff/UCSC/UCSC Year 3 FALL/CMPM 123/Code/Chess-AI" "-BC:/SchoolStuff/UCSC/UCSC Year 3 FALL/CMPM 123/Code/Chess-AI/build" --check-stamp-file "C:/SchoolStuff/UCSC/UCSC Year 3 FALL/CMPM 123/Code/Chess-AI/build/CMakeFiles/generate.stamp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

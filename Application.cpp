@@ -6,6 +6,8 @@
 #include "classes/Connect4.h"
 #include "classes/Chess.h"
 
+// Name: Jonathan Ng
+
 namespace ClassGame {
         //
         // our global variables

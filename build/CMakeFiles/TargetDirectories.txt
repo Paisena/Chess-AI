@@ -1,0 +1,9 @@
+C:/SchoolStuff/UCSC/UCSC Year 3 FALL/CMPM 123/Code/Chess-AI/build/CMakeFiles/Experimental.dir
+C:/SchoolStuff/UCSC/UCSC Year 3 FALL/CMPM 123/Code/Chess-AI/build/CMakeFiles/Nightly.dir
+C:/SchoolStuff/UCSC/UCSC Year 3 FALL/CMPM 123/Code/Chess-AI/build/CMakeFiles/Continuous.dir
+C:/SchoolStuff/UCSC/UCSC Year 3 FALL/CMPM 123/Code/Chess-AI/build/CMakeFiles/NightlyMemoryCheck.dir
+C:/SchoolStuff/UCSC/UCSC Year 3 FALL/CMPM 123/Code/Chess-AI/build/CMakeFiles/demo.dir
+C:/SchoolStuff/UCSC/UCSC Year 3 FALL/CMPM 123/Code/Chess-AI/build/CMakeFiles/PACKAGE.dir
+C:/SchoolStuff/UCSC/UCSC Year 3 FALL/CMPM 123/Code/Chess-AI/build/CMakeFiles/RUN_TESTS.dir
+C:/SchoolStuff/UCSC/UCSC Year 3 FALL/CMPM 123/Code/Chess-AI/build/CMakeFiles/ALL_BUILD.dir
+C:/SchoolStuff/UCSC/UCSC Year 3 FALL/CMPM 123/Code/Chess-AI/build/CMakeFiles/ZERO_CHECK.dir

@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\SchoolStuff\UCSC\UCSC Year 3 FALL\CMPM 123\Code\Chess-AI\Application.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\SchoolStuff\UCSC\UCSC Year 3 FALL\CMPM 123\Code\Chess-AI\imgui\imgui_demo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\SchoolStuff\UCSC\UCSC Year 3 FALL\CMPM 123\Code\Chess-AI\imgui\imgui_draw.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\SchoolStuff\UCSC\UCSC Year 3 FALL\CMPM 123\Code\Chess-AI\imgui\imgui_tables.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\SchoolStuff\UCSC\UCSC Year 3 FALL\CMPM 123\Code\Chess-AI\imgui\imgui_widgets.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\SchoolStuff\UCSC\UCSC Year 3 FALL\CMPM 123\Code\Chess-AI\imgui\imgui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\SchoolStuff\UCSC\UCSC Year 3 FALL\CMPM 123\Code\Chess-AI\classes\Bit.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\SchoolStuff\UCSC\UCSC Year 3 FALL\CMPM 123\Code\Chess-AI\classes\BitHolder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\SchoolStuff\UCSC\UCSC Year 3 FALL\CMPM 123\Code\Chess-AI\classes\Game.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\SchoolStuff\UCSC\UCSC Year 3 FALL\CMPM 123\Code\Chess-AI\classes\Sprite.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\SchoolStuff\UCSC\UCSC Year 3 FALL\CMPM 123\Code\Chess-AI\classes\Square.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\SchoolStuff\UCSC\UCSC Year 3 FALL\CMPM 123\Code\Chess-AI\classes\ChessSquare.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\SchoolStuff\UCSC\UCSC Year 3 FALL\CMPM 123\Code\Chess-AI\classes\Grid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\SchoolStuff\UCSC\UCSC Year 3 FALL\CMPM 123\Code\Chess-AI\classes\TicTacToe.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\SchoolStuff\UCSC\UCSC Year 3 FALL\CMPM 123\Code\Chess-AI\classes\Checkers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\SchoolStuff\UCSC\UCSC Year 3 FALL\CMPM 123\Code\Chess-AI\classes\Othello.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\SchoolStuff\UCSC\UCSC Year 3 FALL\CMPM 123\Code\Chess-AI\classes\Connect4.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\SchoolStuff\UCSC\UCSC Year 3 FALL\CMPM 123\Code\Chess-AI\classes\Chess.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\SchoolStuff\UCSC\UCSC Year 3 FALL\CMPM 123\Code\Chess-AI\imgui\imgui_impl_dx11.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\SchoolStuff\UCSC\UCSC Year 3 FALL\CMPM 123\Code\Chess-AI\main_win32.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\SchoolStuff\UCSC\UCSC Year 3 FALL\CMPM 123\Code\Chess-AI\imgui\imgui_impl_win32.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\SchoolStuff\UCSC\UCSC Year 3 FALL\CMPM 123\Code\Chess-AI\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{89A0F64E-4BAB-3252-A8C1-943BD91F61E1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

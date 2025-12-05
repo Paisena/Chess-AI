@@ -1,0 +1,10 @@
+^C:\SCHOOLSTUFF\UCSC\UCSC YEAR 3 FALL\CMPM 123\CODE\CHESS-AI\BUILD\CMAKEFILES\C9127276920B35A0AAA63EC3B30E17F5\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" "-SC:/SchoolStuff/UCSC/UCSC Year 3 FALL/CMPM 123/Code/Chess-AI" "-BC:/SchoolStuff/UCSC/UCSC Year 3 FALL/CMPM 123/Code/Chess-AI/build" --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file "C:/SchoolStuff/UCSC/UCSC Year 3 FALL/CMPM 123/Code/Chess-AI/build/tictactoe.slnx"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
