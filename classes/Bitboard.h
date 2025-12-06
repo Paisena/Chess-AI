@@ -16,12 +16,12 @@ enum ChessPiece
     King
 };
 
-class BitboardElement {
+class BitBoard{
   public:
     // Constructors
-    BitboardElement()
+    BitBoard()
         : _data(0) { }
-    BitboardElement(uint64_t data)
+    BitBoard(uint64_t data)
         : _data(data) { }
 
     // Getters and Setters
@@ -41,12 +41,83 @@ class BitboardElement {
         }
     }
 
-    BitboardElement& operator|=(const uint64_t other) {
+    BitBoard& operator|=(const uint64_t other) {
         _data |= other;
         return *this;
     }
 
-    void printBitboard() {
+    BitBoard& operator|=(const BitBoard other) {
+        _data |= other.getData();
+        return *this;
+    }
+
+    BitBoard& operator&=(const uint64_t other) {
+        _data &= other;
+        return *this;
+    }
+
+    BitBoard& operator&=(const BitBoard other) {
+        _data &= other.getData();
+        return *this;
+    }
+
+    BitBoard operator&(const uint64_t other) const {
+        return BitBoard(_data & other);
+    }
+
+    BitBoard operator&(const BitBoard other) const {
+        return BitBoard(_data & other.getData());
+    }
+
+    BitBoard operator|(const uint64_t other) const {
+        return BitBoard(_data | other);
+    }
+    BitBoard operator|(const BitBoard other) const {
+        return BitBoard(_data | other.getData());
+    }
+
+    BitBoard operator=(const uint64_t other) {
+        _data = other;
+        return *this;
+    }
+    BitBoard operator=(const BitBoard other) {
+        _data = other.getData();
+        return *this;
+    }
+    BitBoard operator==(const uint64_t other) const {
+        return _data == other;
+    }
+    BitBoard operator==(const BitBoard other) const {
+        return _data == other.getData();
+    }
+    BitBoard operator<<(const int shift) const {
+        return BitBoard(_data << shift);
+    }
+    BitBoard operator>>(const int shift) const {
+        return BitBoard(_data >> shift);
+    }
+    BitBoard operator~() const {
+        return BitBoard(~_data);
+    }
+
+    BitBoard operator == (const int other) const {
+        return _data == other;
+    }
+    BitBoard operator- (int other) const {
+        return BitBoard(_data - other);
+    }
+    BitBoard operator& (int other) const {
+        return BitBoard(_data & other);
+    }
+    bool operator!() const {
+        return !_data;
+    }
+
+    int firstBit() {
+        return bitScanForward(_data);
+    }
+
+    void printBitBoard() {
         std::cout << "\n  a b c d e f g h\n";
         for (int rank = 7; rank >= 0; rank--) {
             std::cout << (rank + 1) << " ";

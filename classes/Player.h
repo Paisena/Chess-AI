@@ -15,7 +15,10 @@ public:
 
 	std::string		*name();
 	void			setName(const std::string &name) { _name = name; }
-	void            setPlayerNumber(int n) { _playerNumber = n; }
+	void            setPlayerNumber(int n) { 
+						_playerNumber = n;
+					}
+
 	int			 	playerNumber() { return _playerNumber; }
 	Game			*game();
 	int				index();

@@ -5,7 +5,7 @@
 #include "Bitboard.h"
 
 constexpr int pieceSize = 80;
-typedef uint64_t BitBoard;
+//typedef uint64_t BitBoard;
 
 // enum ChessPiece
 // {
@@ -45,6 +45,9 @@ public:
     Chess();
     ~Chess();
 
+    int negInfinite = -1000000;
+    int posInfinite = 1000000;
+
     void setUpBoard() override;
 
     bool canBitMoveFrom(Bit &bit, BitHolder &src) override;
@@ -63,13 +66,13 @@ public:
 
     Grid* getGrid() override { return _grid; }
 
-    void printBitboard(uint64_t bitboard) {
+    void printBitboard(BitBoard bitboard) {
         std::cout << "\n  a b c d e f g h\n";
         for (int rank = 7; rank >= 0; rank--) {
             std::cout << (rank + 1) << " ";
             for (int file = 0; file < 8; file++) {
                 int square = rank * 8 + file;
-                if (bitboard & (1ULL << square)) {
+                if (bitboard.getData() & (1ULL << square)) {
                     std::cout << "X ";
                 } else {
                     std::cout << ". ";
@@ -87,16 +90,20 @@ private:
     Player* ownerAt(int x, int y) const;
     void FENtoBoard(const std::string& fen);
     char pieceNotation(int x, int y) const;
-    std::vector<BitMove> generateAllMoves();
-    void generateKingMoves(std::vector<BitMove>& moves, uint64_t kingBitboard, int colorAsInt, uint64_t occupancy);
+    std::vector<BitMove> generateAllMoves(const std::string& state, int player);
+    void generateKingMoves(std::vector<BitMove>& moves, BitBoard kingBitboard, int colorAsInt, BitBoard occupancy);
     void addPawnBitboardMovesToList(std::vector<BitMove>& moves, const BitBoard bitboard, const int shift);
     void generatePawnMoveList(std::vector<BitMove>& moves, const BitBoard pawns, const BitBoard occupancy, const BitBoard enemyPieces, char color);
     BitBoard generateKnightMoveBitboard(int square);
-    void generateKnightMoves(std::vector<BitMove>& moves, uint64_t knightBoard, uint64_t occupancy);
+    void generateKnightMoves(std::vector<BitMove>& moves, BitBoard knightBoard, BitBoard occupancy);
 
-    void generateBishopMoves(std::vector<BitMove>& moves, uint64_t bishopBoard, uint64_t occupancy, uint64_t friendlies);
-    void generateRookMoves(std::vector<BitMove>& moves, uint64_t rookBoard, uint64_t occupancy, uint64_t friendlies);
-    void generateQueenMoves(std::vector<BitMove>& moves, uint64_t queenBoard, uint64_t occupancy, uint64_t friendlies);
+    int evaluateBoard(std::string state);
+    void updateAI();
+    int negamax(std::string& state, int depth, int alpha, int beta, int playerColor);
+
+    void generateBishopMoves(std::vector<BitMove>& moves, BitBoard bishopBoard, BitBoard occupancy, BitBoard friendlies);
+    void generateRookMoves(std::vector<BitMove>& moves, BitBoard rookBoard, BitBoard occupancy, BitBoard friendlies);
+    void generateQueenMoves(std::vector<BitMove>& moves, BitBoard queenBoard, BitBoard occupancy, BitBoard friendlies);
     inline int bitScanForward(uint64_t bb) const {
     #if defined(_MSC_VER) && !defined(__clang__)
             unsigned long index;
@@ -114,4 +121,5 @@ private:
     std::vector<BitMove> _moves;
     BitBoard _bitboards[e_numBitboards];
     int _bitboardLookup[128];
+    int _countMoves = 0;
 };

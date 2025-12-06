@@ -5,6 +5,9 @@
 
 
 
+#define WHITE 0
+#define BLACK -1
+
 Chess::Chess()
 {
     _grid = new Grid(8, 8);
@@ -76,8 +79,13 @@ void Chess::setUpBoard()
 
     _grid->initializeChessSquares(pieceSize, "boardsquare.png");
     FENtoBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
+    _currentPlayer = 0;
+    _moves = generateAllMoves(stateString(), _currentPlayer);
+
+    if (gameHasAI()) {
+        setAIPlayer(AI_PLAYER);
+    }
     startGame();
-    _moves = generateAllMoves();
 }
 
 
@@ -270,7 +278,7 @@ bool Chess::canBitMoveFromTo(Bit &bit, BitHolder &src, BitHolder &dst)
 void Chess::bitMovedFromTo(Bit &bit, BitHolder &src, BitHolder &dst)
 {
     endTurn();
-    _moves = generateAllMoves();
+    _moves = generateAllMoves(stateString(), _currentPlayer);
 }
 
 void Chess::stopGame()
@@ -331,13 +339,13 @@ void Chess::setStateString(const std::string &s)
     });
 }
 
-std::vector<BitMove> Chess::generateAllMoves() 
+std::vector<BitMove> Chess::generateAllMoves(const std::string& state, int player) 
 {
     std::vector<BitMove> moves;
     uint64_t BitZero = 1ULL;
 
     moves.reserve(32);
-    std::string state = stateString();
+    //std::string state = stateString();
 
     for (int i = 0; i < e_numBitboards; i++) {
         _bitboards[i] = 0;
@@ -348,11 +356,7 @@ std::vector<BitMove> Chess::generateAllMoves()
         _bitboards[bitIndex] |= 1ULL << i;
         
     }
-    std::cout << "White Knights Bitboard:" << std::endl;
-    printBitboard(_bitboards[WHITE_KNIGHTS]);
 
-    std::cout << "Black Knights Bitboard:" << std::endl;
-    printBitboard(_bitboards[BLACK_PAWNS]);
     _bitboards[WHITE_ALL_PIECES] = _bitboards[WHITE_PAWNS] | 
                                         _bitboards[WHITE_KNIGHTS] | 
                                         _bitboards[WHITE_BISHOPS] | 
@@ -373,26 +377,25 @@ std::vector<BitMove> Chess::generateAllMoves()
     int bitIndex = getCurrentPlayer()->playerNumber() == 1 ? BLACK_PAWNS : WHITE_PAWNS;
 
     
-    generateKingMoves(moves, _bitboards[WHITE_KING + bitIndex], 1, _bitboards[WHITE_ALL_PIECES]);
-    generateKnightMoves(moves, _bitboards[WHITE_KNIGHTS + bitIndex], _bitboards[WHITE_ALL_PIECES]);
+    generateKingMoves(moves, _bitboards[WHITE_KING + bitIndex], getCurrentPlayer()->playerNumber(), _bitboards[WHITE_ALL_PIECES + bitIndex]);
+    generateKnightMoves(moves, _bitboards[WHITE_KNIGHTS + bitIndex], _bitboards[WHITE_ALL_PIECES + bitIndex]);
     generatePawnMoveList(moves, _bitboards[WHITE_PAWNS + bitIndex], _bitboards[EMPTY_SQUARES], _bitboards[WHITE_ALL_PIECES + oppBitIndex], getCurrentPlayer()->playerNumber());
     generateBishopMoves(moves, _bitboards[WHITE_BISHOPS + bitIndex], _bitboards[OCCUPANCY], _bitboards[WHITE_ALL_PIECES + bitIndex]);
     generateRookMoves(moves, _bitboards[WHITE_ROOKS + bitIndex], _bitboards[OCCUPANCY], _bitboards[WHITE_ALL_PIECES + bitIndex]);
     generateQueenMoves(moves, _bitboards[WHITE_QUEENS + bitIndex], _bitboards[OCCUPANCY], _bitboards[WHITE_ALL_PIECES + bitIndex]);
-    //generateKnightMoves(moves, blackKnights, blackOccupancy);
 
     return moves;
 }
 
-void Chess::generateKingMoves(std::vector<BitMove>& moves, uint64_t kingBitboard, int colorAsInt, uint64_t occupancy) {
+void Chess::generateKingMoves(std::vector<BitMove>& moves, BitBoard kingBitboard, int colorAsInt, BitBoard occupancy) {
     constexpr uint64_t NotAFile(0xFEFEFEFEFEFEFEFEULL);
     constexpr uint64_t NotHFile(0x7F7F7F7F7F7F7F7FULL);
     constexpr uint64_t Rank1(0x00000000000000FFULL);
     constexpr uint64_t Rank8(0xFF00000000000000ULL);
 
-    int fromSquare = bitScanForward(kingBitboard);
+    int fromSquare = bitScanForward(kingBitboard.getData());
 
-    uint64_t kingMoves[8];
+    BitBoard kingMoves[8];
 
     kingMoves[0] = ((kingBitboard & NotAFile) << 1) & ~occupancy;
     kingMoves[1] = ((kingBitboard & NotHFile) >> 1)  & ~occupancy;
@@ -407,12 +410,12 @@ void Chess::generateKingMoves(std::vector<BitMove>& moves, uint64_t kingBitboard
     for (int i = 0; i < 8; i++)
     {
         int toSquare;
-        if (bitScanForward(kingMoves[i])==0 && (fromSquare == 1 || fromSquare == 8 || fromSquare == 9)) {
-            toSquare = bitScanForward(kingMoves[i]);
+        if (bitScanForward(kingMoves[i].getData())==0 && (fromSquare == 1 || fromSquare == 8 || fromSquare == 9)) {
+            toSquare = bitScanForward(kingMoves[i].getData());
         }
-        else if(bitScanForward(kingMoves[i]) != 0)
+        else if(bitScanForward(kingMoves[i].getData()) != 0)
         {
-            toSquare = bitScanForward(kingMoves[i]);
+            toSquare = bitScanForward(kingMoves[i].getData());
         }
         else {
             continue;
@@ -444,11 +447,11 @@ BitBoard Chess::generateKnightMoveBitboard(int square) {
 }
 
 void Chess::addPawnBitboardMovesToList(std::vector<BitMove>& moves, BitBoard bitboard, const int shift) {
-    if (bitboard == 0)
+    if (bitboard.getData() == 0)
         return;
-    while (bitboard)
+    while (bitboard.getData())
     {
-        int toSquare = bitScanForward(bitboard);
+        int toSquare = bitScanForward(bitboard.getData());
         int fromSquare = toSquare - shift;
         moves.emplace_back(fromSquare, toSquare, Pawn);
 
@@ -457,15 +460,11 @@ void Chess::addPawnBitboardMovesToList(std::vector<BitMove>& moves, BitBoard bit
     
 }
 
-#define WHITE 0
-#define BLACK -1
 
 void Chess::generatePawnMoveList(std::vector<BitMove>& moves, const BitBoard pawns, const BitBoard emptySquares, const BitBoard enemyPieces, char color) {
-    if (pawns == 0) {
+    if (pawns.getData() == 0) {
         return;
     }
-    std::cout << "Empty squares" << std::endl;
-    printBitboard(emptySquares);
 
     constexpr uint64_t NotAFile(0xFEFEFEFEFEFEFEFEULL);
     constexpr uint64_t NotHFile(0x7F7F7F7F7F7F7F7FULL);
@@ -494,15 +493,13 @@ void Chess::generatePawnMoveList(std::vector<BitMove>& moves, const BitBoard paw
 
 
 
-void Chess::generateKnightMoves(std::vector<BitMove>& moves, uint64_t knightBoard, uint64_t occupancy) {
-    std::cout << "Generating Knight Moves" << std::endl;
-    printBitboard(knightBoard);
-    while (knightBoard) {
-        int fromSquare = bitScanForward(knightBoard);
-        uint64_t moveBitboard = _knightBitboards[fromSquare];
+void Chess::generateKnightMoves(std::vector<BitMove>& moves, BitBoard knightBoard, BitBoard occupancy) {
+    while (knightBoard.getData()) {
+        int fromSquare = bitScanForward(knightBoard.getData());
+        BitBoard moveBitboard = _knightBitboards[fromSquare];
 
-        while (moveBitboard) {
-            int toSquare = bitScanForward(moveBitboard);
+        while (moveBitboard.getData()) {
+            int toSquare = bitScanForward(moveBitboard.getData());
             if (!(occupancy & (1ULL<<toSquare))) {
                 moves.push_back(BitMove(fromSquare,toSquare, Knight));
             }
@@ -513,13 +510,13 @@ void Chess::generateKnightMoves(std::vector<BitMove>& moves, uint64_t knightBoar
     }
 }
 
-void Chess::generateBishopMoves(std::vector<BitMove>& moves, uint64_t bishopBoard, uint64_t occupancy, uint64_t friendlies) {
-    while (bishopBoard) {
-        int fromSquare = bitScanForward(bishopBoard);
-        uint64_t moveBitboard = BitBoard(getBishopAttacks(fromSquare, occupancy) & ~friendlies);
+void Chess::generateBishopMoves(std::vector<BitMove>& moves, BitBoard bishopBoard, BitBoard occupancy, BitBoard friendlies) {
+    while (bishopBoard.getData()) {
+        int fromSquare = bitScanForward(bishopBoard.getData());
+        BitBoard moveBitboard = BitBoard(getBishopAttacks(fromSquare, occupancy.getData()) & ~friendlies.getData());
         
-        while (moveBitboard) {
-            int toSquare = bitScanForward(moveBitboard);
+        while (moveBitboard.getData()) {
+            int toSquare = bitScanForward(moveBitboard.getData());
             moves.push_back(BitMove(fromSquare,toSquare, Bishop));
             moveBitboard &= moveBitboard -1;
         }
@@ -528,13 +525,13 @@ void Chess::generateBishopMoves(std::vector<BitMove>& moves, uint64_t bishopBoar
     }
 }
 
-void Chess::generateRookMoves(std::vector<BitMove>& moves, uint64_t rookBoard, uint64_t occupancy, uint64_t friendlies) {
-    while (rookBoard) {
-        int fromSquare = bitScanForward(rookBoard);
-        uint64_t moveBitboard = BitBoard(getRookAttacks(fromSquare, occupancy) & ~friendlies);
+void Chess::generateRookMoves(std::vector<BitMove>& moves, BitBoard rookBoard, BitBoard occupancy, BitBoard friendlies) {
+    while (rookBoard.getData()) {
+        int fromSquare = bitScanForward(rookBoard.getData());
+        BitBoard moveBitboard = BitBoard(getRookAttacks(fromSquare, occupancy.getData()) & ~friendlies.getData());
         
-        while (moveBitboard) {
-            int toSquare = bitScanForward(moveBitboard);
+        while (moveBitboard.getData()) {
+            int toSquare = bitScanForward(moveBitboard.getData());
             moves.push_back(BitMove(fromSquare,toSquare, Rook));
             moveBitboard &= moveBitboard -1;
         }
@@ -543,17 +540,106 @@ void Chess::generateRookMoves(std::vector<BitMove>& moves, uint64_t rookBoard, u
     }
 }
 
-void Chess::generateQueenMoves(std::vector<BitMove>& moves, uint64_t queenBoard, uint64_t occupancy, uint64_t friendlies) {
-    while (queenBoard) {
-        int fromSquare = bitScanForward(queenBoard);
-        uint64_t moveBitboard = BitBoard(getQueenAttacks(fromSquare, occupancy) & ~friendlies);
+void Chess::generateQueenMoves(std::vector<BitMove>& moves, BitBoard queenBoard, BitBoard occupancy, BitBoard friendlies) {
+    while (queenBoard.getData()) {
+        int fromSquare = bitScanForward(queenBoard.getData());
+        BitBoard moveBitboard = BitBoard(getQueenAttacks(fromSquare, occupancy.getData()) & ~friendlies.getData());
         
-        while (moveBitboard) {
-            int toSquare = bitScanForward(moveBitboard);
+        while (moveBitboard.getData()) {
+            int toSquare = bitScanForward(moveBitboard.getData());
             moves.push_back(BitMove(fromSquare,toSquare, Queen));
             moveBitboard &= moveBitboard -1;
         }
 
         queenBoard &= queenBoard - 1;
     }
+}
+
+void Chess::updateAI() 
+{
+    int bestVal = negInfinite;
+    BitMove bestMove;
+    std::string state = stateString();
+    _countMoves = 0;
+
+    for(auto move : _moves) {
+        char boardSave = state[move.to];
+        char pieceMoving = state[move.from];
+
+        state[move.to] = pieceMoving;
+        state[move.from] = '0';
+
+        int moveVal = -negamax(state, 5, negInfinite, posInfinite, 1);
+        // Undo the move
+        state[move.from] = pieceMoving;
+        state[move.to] = boardSave;
+        // If the value of the current move is more than the best value, update best
+        if (moveVal > bestVal) {
+            bestMove = move;
+            bestVal = moveVal;
+        }
+
+    };
+    if (bestVal != negInfinite) {
+        std::cout << "Moves checked: " << _countMoves << std::endl;
+
+        int srcSquare = bestMove.from;
+        int dstSquare = bestMove.to;
+        BitHolder& src = getHolderAt(srcSquare&7, srcSquare/8);
+        BitHolder& dst = getHolderAt(dstSquare&7, dstSquare/8);
+        Bit *bit = src.bit();
+        dst.dropBitAtPoint(bit, ImVec2(0,0));
+        src.setBit(nullptr);
+        bitMovedFromTo(*bit, src, dst);
+    }
+
+}
+
+static std::map<char, int> evaluateScores = {
+    {'P', 100}, {'N', 300}, {'B', 400}, {'R', 500}, {'Q', 900}, {'K', 2000},
+    {'p', -100}, {'n', -300}, {'b', -400}, {'r', -500}, {'q', -900}, {'k', -2000},
+    {'0', 0}
+};
+
+int Chess::negamax(std::string& state, int depth, int alpha, int beta, int playerColor) 
+{   
+    _countMoves++;
+    if (depth == 0) {
+        return evaluateBoard(state) * playerColor;
+    }
+    
+    auto newMoves = generateAllMoves(state, playerColor);
+    
+    int bestVal = negInfinite; // Min value
+
+    for(auto move : newMoves) {
+        int srcSquare = move.from;
+        int dstSquare = move.to;
+
+        char oldDst = state[dstSquare];
+        char srcPce = state[srcSquare];
+        state[dstSquare] = srcPce;
+        state[srcSquare] = '0';
+
+        bestVal = std::max(bestVal, -negamax(state, depth - 1, -beta, -alpha, -playerColor));
+        // Undo the move
+        state[dstSquare] = oldDst;
+        state[srcSquare] = srcPce;
+
+        alpha = std::max(alpha, bestVal);
+        if (alpha >= beta) {
+            break; // Beta cut-off
+        }
+    }
+    return bestVal;
+}
+
+int Chess::evaluateBoard(const std::string state) {
+    int score = 0;
+    for (char ch: state)
+    {
+        score += evaluateScores[ch];
+    }
+
+    return score;
 }
