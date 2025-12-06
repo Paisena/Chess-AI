@@ -569,7 +569,7 @@ void Chess::updateAI()
         state[move.to] = pieceMoving;
         state[move.from] = '0';
 
-        int moveVal = -negamax(state, 5, negInfinite, posInfinite, 1);
+        int moveVal = -negamax(state, 4, negInfinite, posInfinite, 1);
         // Undo the move
         state[move.from] = pieceMoving;
         state[move.to] = boardSave;
